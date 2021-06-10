@@ -13,26 +13,34 @@ class SearchPage extends StatefulWidget {
 class _SearchPageState extends State<SearchPage> {
   List<DataModel> list = [];
   List<DataModel> listsearch = [];
-  bool isNotHaveData = true;
 
   TextEditingController searchController = TextEditingController();
+  String? message='Search Item';
 
-  oncari(String text) async {
+  onSearch(String text) async {
     listsearch.clear();
     if (text.isEmpty) {
       setState(() {});
-      return;
+      return message='Search Item';
     }
     list.forEach((element) {
       if (element.title.contains(text.toLowerCase()) ||
           element.body.contains(text.toLowerCase())) {
         listsearch.add(element);
+      } else if (element.body != searchController.text ||
+          element.title != searchController.text) {
+        message = 'Item Not Found';
       }
       setState(() {});
     });
   }
 
-  late int index;
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+    searchController.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,12 +49,12 @@ class _SearchPageState extends State<SearchPage> {
           appBar: AppBar(
             title: TextField(
               controller: searchController,
-              onChanged: oncari,
+              onChanged: onSearch,
               decoration: InputDecoration(
                 contentPadding:
                     EdgeInsets.symmetric(vertical: 16.0, horizontal: 20.0),
                 filled: true,
-                hintText: 'Cari Item',
+                hintText: 'Search Item',
                 fillColor: Colors.white,
                 border: OutlineInputBorder(
                     borderSide: BorderSide(color: Colors.greenAccent),
@@ -63,18 +71,15 @@ class _SearchPageState extends State<SearchPage> {
               }
               return listsearch.length == 0 || searchController.text.isEmpty
                   ? Center(
-                      child: Text(
-                        'Search item',
-                        style: GoogleFonts.poppins(
-                            color: Colors.black54, fontSize: 25.0),
-                      ),
-                    )
+                      child: message == 'Search Item'
+                          ? Text('$message',style: TextStyle(fontSize: 20))
+                          : Text('$message', style: TextStyle(fontSize: 20)))
                   : Container(
                       child: ListView.builder(
                         itemCount: listsearch.length,
                         itemBuilder: (context, index) {
                           final list = listsearch[index];
-                          return _post(list,context);
+                          return _post(list, context);
                         },
                       ),
                     );
@@ -82,7 +87,8 @@ class _SearchPageState extends State<SearchPage> {
           )),
     );
   }
-   Widget _post(DataModel? dataModel, BuildContext context) {
+
+  Widget _post(DataModel? dataModel, BuildContext context) {
     return InkWell(
       onTap: () {
         Navigator.push(context, MaterialPageRoute(builder: (context) {
